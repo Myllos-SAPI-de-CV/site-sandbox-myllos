@@ -1,0 +1,2006 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/v1/estado": {
+      "get": {
+        "description": "No requiere llave. Sirve para confirmar que el sandbox está arriba.",
+        "operationId": "EstadoController_estado",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EstadoDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Verificar el ambiente",
+        "tags": [
+          "Estado"
+        ]
+      }
+    },
+    "/v1/cotizaciones": {
+      "post": {
+        "description": "Devuelve una opción por servicio (Económico y Express) con precio total, desglose, días hábiles y el peso que se cobra. No elige paquetería: Myllos la asigna al generar la guía. Cada cotizacion_id vence a los 30 minutos y sirve para una sola guía.",
+        "operationId": "CotizacionesController_cotizar",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrearCotizacionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaCotizacionDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta la llave o no es válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "llave": []
+          }
+        ],
+        "summary": "Cotizar un envío",
+        "tags": [
+          "Cotizaciones"
+        ]
+      }
+    },
+    "/v1/guias": {
+      "post": {
+        "description": "Emite la guía con una cotizacion_id vigente y descuenta su precio del saldo de prepago. Repetir la petición con la misma Idempotency-Key y los mismos datos devuelve la misma guía con status 200 y el encabezado Idempotency-Replayed: true, sin cobrar de nuevo.",
+        "operationId": "GuiasController_crear",
+        "parameters": [
+          {
+            "name": "idempotency-key",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "description": "Valor único por guía, de 8 a 100 caracteres. Por ejemplo, el id de tu pedido.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrearGuiaDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Repetición idempotente de una guía ya emitida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GuiaCreadaDto"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Guía emitida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GuiaCreadaDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos o falta Idempotency-Key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "saldo_insuficiente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "cotizacion_no_encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "cotizacion_usada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "cotizacion_vencida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "codigo_postal_no_coincide o idempotencia_conflicto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "llave": []
+          }
+        ],
+        "summary": "Generar una guía",
+        "tags": [
+          "Guías"
+        ]
+      }
+    },
+    "/v1/guias/{id}": {
+      "get": {
+        "description": "Incluye estado actual, enlaces de etiqueta y rastreo, ajustes y la fecha límite para cancelar.",
+        "operationId": "GuiasController_obtener",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GuiaDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "llave": []
+          }
+        ],
+        "summary": "Consultar una guía",
+        "tags": [
+          "Guías"
+        ]
+      },
+      "delete": {
+        "description": "Solo en estado documentada y dentro de los 30 días de vigencia. Devuelve al saldo el costo de la guía más sus ajustes.",
+        "operationId": "GuiasController_cancelar",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CancelacionDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "guia_cancelada, guia_no_cancelable o guia_vencida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "llave": []
+          }
+        ],
+        "summary": "Cancelar una guía",
+        "tags": [
+          "Guías"
+        ]
+      }
+    },
+    "/v1/guias/{id}/etiqueta": {
+      "get": {
+        "description": "PDF o ZPL de 4 × 6 pulgadas. El ZPL está a 203 dpi (812 × 1218 puntos).",
+        "operationId": "GuiasController_etiqueta",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "formato",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "pdf",
+              "enum": [
+                "pdf",
+                "zpl"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Archivo de la etiqueta"
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              },
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "guia_cancelada",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              },
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "llave": []
+          }
+        ],
+        "summary": "Descargar la etiqueta",
+        "tags": [
+          "Guías"
+        ]
+      }
+    },
+    "/v1/rastreo/{numero}": {
+      "get": {
+        "description": "En sandbox, la guía avanza una etapa cada SANDBOX_MINUTOS_POR_ETAPA minutos (10 por omisión): documentada, recolectada, en_transito, en_reparto y entregada.",
+        "operationId": "RastreoController_rastrear",
+        "parameters": [
+          {
+            "name": "numero",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RastreoDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "llave": []
+          }
+        ],
+        "summary": "Rastrear por número de guía",
+        "tags": [
+          "Rastreo"
+        ]
+      }
+    },
+    "/v1/saldo": {
+      "get": {
+        "description": "En sandbox cada llave arranca con 5,000 MXN de prueba.",
+        "operationId": "SaldoController_saldo",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaldoDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "llave": []
+          }
+        ],
+        "summary": "Consultar saldo de prepago",
+        "tags": [
+          "Saldo"
+        ]
+      }
+    },
+    "/v1/webhooks": {
+      "post": {
+        "description": "Myllos envía un POST JSON por cada evento suscrito. envio.estado avisa el estado más reciente de una guía; envio.ajuste avisa un cargo posterior, como sobrepeso. Cada aviso trae el encabezado X-Myllos-Firma: t=<unix>,v1=<hex>, donde v1 es HMAC-SHA256 de \"<t>.<cuerpo>\" con el secreto.",
+        "operationId": "WebhooksController_registrar",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegistrarWebhookDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookCreadoDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "La cuenta ya tiene 5 webhooks",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "llave": []
+          }
+        ],
+        "summary": "Registrar un webhook",
+        "tags": [
+          "Webhooks"
+        ]
+      },
+      "get": {
+        "description": "Incluye el resultado de la última entrega de cada uno.",
+        "operationId": "WebhooksController_listar",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WebhookDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "llave": []
+          }
+        ],
+        "summary": "Listar webhooks",
+        "tags": [
+          "Webhooks"
+        ]
+      }
+    },
+    "/v1/webhooks/{id}": {
+      "delete": {
+        "operationId": "WebhooksController_eliminar",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "llave": []
+          }
+        ],
+        "summary": "Eliminar un webhook",
+        "tags": [
+          "Webhooks"
+        ]
+      }
+    },
+    "/v1/sandbox/guias/{id}/simular-ajuste": {
+      "post": {
+        "description": "Reproduce lo que pasa cuando la paquetería verifica más peso del declarado: recalcula el flete, descuenta la diferencia del saldo y envía envio.ajuste a tus webhooks.",
+        "operationId": "SimulacionController_simularAjuste",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SimularAjusteDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultadoAjusteDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "guia_cancelada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "sin_diferencia",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "llave": []
+          }
+        ],
+        "summary": "Simular un sobrepeso",
+        "tags": [
+          "Simulación"
+        ]
+      }
+    },
+    "/v1/sandbox/saldo/restablecer": {
+      "post": {
+        "description": "Regresa el saldo de la llave a 5,000 MXN y deja el movimiento en el historial.",
+        "operationId": "SimulacionController_restablecerSaldo",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaldoDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "llave": []
+          }
+        ],
+        "summary": "Restablecer el saldo de prueba",
+        "tags": [
+          "Simulación"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "Myllos Integraciones API",
+    "description": "Un solo punto de conexión para cotizar envíos, generar guías, descargar etiquetas y consultar el rastreo. Este ambiente es sandbox: las guías no se recolectan, no se cobra saldo real y no se emite CFDI.",
+    "version": "0.1.0",
+    "contact": {
+      "name": "Equipo Myllos",
+      "url": "https://myllos.com.mx",
+      "email": "soporte@myllos.com.mx"
+    }
+  },
+  "tags": [
+    {
+      "name": "Estado",
+      "description": "Disponibilidad del ambiente"
+    },
+    {
+      "name": "Cotizaciones",
+      "description": "Tarifas por servicio para un envío"
+    },
+    {
+      "name": "Guías",
+      "description": "Emisión, consulta, etiqueta y cancelación"
+    },
+    {
+      "name": "Rastreo",
+      "description": "Eventos del envío"
+    },
+    {
+      "name": "Saldo",
+      "description": "Saldo de prepago de la cuenta"
+    },
+    {
+      "name": "Webhooks",
+      "description": "Avisos automáticos de estado y ajustes"
+    },
+    {
+      "name": "Simulación",
+      "description": "Acciones solo disponibles en sandbox"
+    }
+  ],
+  "servers": [
+    {
+      "url": "http://localhost:8095",
+      "description": "Sandbox"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "llave": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http",
+        "description": "Llave de integración. Ejemplo: Bearer mk_test_dva_sandbox"
+      }
+    },
+    "schemas": {
+      "EstadoDto": {
+        "type": "object",
+        "properties": {
+          "ambiente": {
+            "type": "string",
+            "example": "sandbox"
+          },
+          "version": {
+            "type": "string",
+            "example": "0.1.0"
+          },
+          "hora_servidor": {
+            "type": "string",
+            "example": "2026-11-19T08:00:00.000Z"
+          }
+        },
+        "required": [
+          "ambiente",
+          "version",
+          "hora_servidor"
+        ]
+      },
+      "ErrorDto": {
+        "type": "object",
+        "properties": {
+          "codigo": {
+            "type": "string",
+            "example": "saldo_insuficiente",
+            "description": "Código estable para manejar el error en tu código."
+          },
+          "mensaje": {
+            "type": "string",
+            "example": "El saldo disponible no cubre el costo de la guía."
+          },
+          "detalle": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Datos adicionales del error, cuando aplica."
+          }
+        },
+        "required": [
+          "codigo",
+          "mensaje"
+        ]
+      },
+      "PaqueteDto": {
+        "type": "object",
+        "properties": {
+          "peso": {
+            "type": "number",
+            "description": "Peso real en kilogramos",
+            "example": 1.2,
+            "minimum": 0.1,
+            "maximum": 59
+          },
+          "largo": {
+            "type": "number",
+            "description": "Largo en centímetros",
+            "example": 30,
+            "minimum": 1,
+            "maximum": 200
+          },
+          "ancho": {
+            "type": "number",
+            "description": "Ancho en centímetros",
+            "example": 20,
+            "minimum": 1,
+            "maximum": 200
+          },
+          "alto": {
+            "type": "number",
+            "description": "Alto en centímetros",
+            "example": 15,
+            "minimum": 1,
+            "maximum": 200
+          }
+        },
+        "required": [
+          "peso",
+          "largo",
+          "ancho",
+          "alto"
+        ]
+      },
+      "CrearCotizacionDto": {
+        "type": "object",
+        "properties": {
+          "codigo_postal_origen": {
+            "type": "string",
+            "example": "80000"
+          },
+          "codigo_postal_destino": {
+            "type": "string",
+            "example": "06600"
+          },
+          "paquetes": {
+            "description": "Bultos del envío, de 1 a 10.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PaqueteDto"
+            }
+          },
+          "contenido": {
+            "type": "string",
+            "description": "Descripción del contenido",
+            "example": "Ropa"
+          },
+          "recoleccion": {
+            "type": "boolean",
+            "description": "Recolección en el domicilio de origen",
+            "default": false
+          },
+          "acuse_recibo": {
+            "type": "boolean",
+            "description": "Acuse de recibo firmado por el destinatario",
+            "default": false
+          },
+          "seguro": {
+            "type": "boolean",
+            "description": "Asegurar el envío. Requiere valor_declarado.",
+            "default": false
+          },
+          "valor_declarado": {
+            "type": "number",
+            "description": "Valor declarado del contenido en MXN",
+            "example": 1500,
+            "minimum": 1,
+            "maximum": 100000
+          }
+        },
+        "required": [
+          "codigo_postal_origen",
+          "codigo_postal_destino",
+          "paquetes"
+        ]
+      },
+      "PesoDto": {
+        "type": "object",
+        "properties": {
+          "real_kg": {
+            "type": "number",
+            "example": 1.2
+          },
+          "volumetrico_kg": {
+            "type": "number",
+            "example": 1.8,
+            "description": "(largo × ancho × alto) / 5000, sumado por bulto"
+          },
+          "cobrado_kg": {
+            "type": "number",
+            "example": 2,
+            "description": "Por bulto, el mayor entre real y volumétrico redondeado al entero superior; después se suman."
+          }
+        },
+        "required": [
+          "real_kg",
+          "volumetrico_kg",
+          "cobrado_kg"
+        ]
+      },
+      "DesgloseDto": {
+        "type": "object",
+        "properties": {
+          "flete": {
+            "type": "number",
+            "example": 167
+          },
+          "zona_extendida": {
+            "type": "number",
+            "example": 0
+          },
+          "recoleccion": {
+            "type": "number",
+            "example": 45
+          },
+          "seguro": {
+            "type": "number",
+            "example": 30
+          },
+          "acuse_recibo": {
+            "type": "number",
+            "example": 0
+          }
+        },
+        "required": [
+          "flete",
+          "zona_extendida",
+          "recoleccion",
+          "seguro",
+          "acuse_recibo"
+        ]
+      },
+      "OpcionTarifaDto": {
+        "type": "object",
+        "properties": {
+          "cotizacion_id": {
+            "type": "string",
+            "example": "cot_3f9a1c2b7d4e5f60",
+            "description": "Úsalo en POST /v1/guias. Vence en 30 minutos."
+          },
+          "servicio": {
+            "type": "string",
+            "enum": [
+              "economico",
+              "express"
+            ],
+            "example": "economico"
+          },
+          "nombre": {
+            "type": "string",
+            "example": "Económico"
+          },
+          "dias_habiles_min": {
+            "type": "number",
+            "example": 3
+          },
+          "dias_habiles_max": {
+            "type": "number",
+            "example": 5
+          },
+          "fecha_estimada_entrega": {
+            "type": "string",
+            "example": "2026-11-26",
+            "description": "Fecha estimada con el máximo de días hábiles"
+          },
+          "zona": {
+            "type": "string",
+            "enum": [
+              "local",
+              "regional",
+              "nacional"
+            ],
+            "example": "nacional"
+          },
+          "zona_extendida": {
+            "type": "boolean",
+            "example": false
+          },
+          "peso": {
+            "$ref": "#/components/schemas/PesoDto"
+          },
+          "desglose": {
+            "$ref": "#/components/schemas/DesgloseDto"
+          },
+          "precio_total": {
+            "type": "number",
+            "example": 242,
+            "description": "Total en MXN, IVA incluido"
+          },
+          "moneda": {
+            "type": "string",
+            "example": "MXN"
+          },
+          "vence_en": {
+            "type": "string",
+            "example": "2026-11-19T08:30:00.000Z"
+          }
+        },
+        "required": [
+          "cotizacion_id",
+          "servicio",
+          "nombre",
+          "dias_habiles_min",
+          "dias_habiles_max",
+          "fecha_estimada_entrega",
+          "zona",
+          "zona_extendida",
+          "peso",
+          "desglose",
+          "precio_total",
+          "moneda",
+          "vence_en"
+        ]
+      },
+      "RespuestaCotizacionDto": {
+        "type": "object",
+        "properties": {
+          "vence_en": {
+            "type": "string",
+            "example": "2026-11-19T08:30:00.000Z"
+          },
+          "opciones": {
+            "description": "Una opción por servicio, ordenadas de menor a mayor precio.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpcionTarifaDto"
+            }
+          }
+        },
+        "required": [
+          "vence_en",
+          "opciones"
+        ]
+      },
+      "DireccionDto": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "example": "Ana López"
+          },
+          "empresa": {
+            "type": "string",
+            "example": "Tienda Ana"
+          },
+          "telefono": {
+            "type": "string",
+            "example": "6671234567",
+            "description": "10 a 15 dígitos; se aceptan espacios, guiones y el prefijo +"
+          },
+          "email": {
+            "type": "string",
+            "example": "ana@tienda.mx"
+          },
+          "calle": {
+            "type": "string",
+            "example": "Av. Obregón"
+          },
+          "numero": {
+            "type": "string",
+            "example": "123"
+          },
+          "interior": {
+            "type": "string",
+            "example": "B"
+          },
+          "colonia": {
+            "type": "string",
+            "example": "Centro"
+          },
+          "ciudad": {
+            "type": "string",
+            "example": "Culiacán"
+          },
+          "estado": {
+            "type": "string",
+            "example": "Sinaloa"
+          },
+          "codigo_postal": {
+            "type": "string",
+            "example": "80000",
+            "description": "Debe coincidir con el código postal cotizado"
+          },
+          "referencias": {
+            "type": "string",
+            "example": "Portón negro"
+          }
+        },
+        "required": [
+          "nombre",
+          "telefono",
+          "calle",
+          "numero",
+          "colonia",
+          "ciudad",
+          "estado",
+          "codigo_postal"
+        ]
+      },
+      "CrearGuiaDto": {
+        "type": "object",
+        "properties": {
+          "cotizacion_id": {
+            "type": "string",
+            "example": "cot_3f9a1c2b7d4e5f60"
+          },
+          "origen": {
+            "description": "Remitente: el negocio que envía",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DireccionDto"
+              }
+            ]
+          },
+          "destino": {
+            "description": "Destinatario",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DireccionDto"
+              }
+            ]
+          },
+          "contenido": {
+            "type": "string",
+            "example": "Ropa",
+            "description": "Contenido declarado por el remitente"
+          },
+          "referencia": {
+            "type": "string",
+            "example": "PED-10234",
+            "description": "Tu número de pedido. Se imprime en la etiqueta y regresa en los webhooks."
+          }
+        },
+        "required": [
+          "cotizacion_id",
+          "origen",
+          "destino"
+        ]
+      },
+      "AdicionalesDto": {
+        "type": "object",
+        "properties": {
+          "recoleccion": {
+            "type": "boolean"
+          },
+          "acuse_recibo": {
+            "type": "boolean"
+          },
+          "seguro": {
+            "type": "boolean"
+          },
+          "valor_declarado": {
+            "type": "number",
+            "example": 0
+          }
+        },
+        "required": [
+          "recoleccion",
+          "acuse_recibo",
+          "seguro",
+          "valor_declarado"
+        ]
+      },
+      "EnlacesEtiquetaDto": {
+        "type": "object",
+        "properties": {
+          "pdf": {
+            "type": "string",
+            "example": "http://localhost:8095/v1/guias/gui_1a2b3c4d5e6f7a8b/etiqueta?formato=pdf"
+          },
+          "zpl": {
+            "type": "string",
+            "example": "http://localhost:8095/v1/guias/gui_1a2b3c4d5e6f7a8b/etiqueta?formato=zpl"
+          }
+        },
+        "required": [
+          "pdf",
+          "zpl"
+        ]
+      },
+      "AjusteDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "aju_1a2b3c4d5e6f7a8b"
+          },
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "sobrepeso"
+            ]
+          },
+          "peso_cobrado_anterior_kg": {
+            "type": "number",
+            "example": 2
+          },
+          "peso_verificado_kg": {
+            "type": "number",
+            "example": 4
+          },
+          "peso_cobrado_nuevo_kg": {
+            "type": "number",
+            "example": 4
+          },
+          "monto": {
+            "type": "number",
+            "example": 24,
+            "description": "Monto descontado del saldo, en MXN"
+          },
+          "fecha": {
+            "type": "string",
+            "example": "2026-11-19T09:00:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "tipo",
+          "peso_cobrado_anterior_kg",
+          "peso_verificado_kg",
+          "peso_cobrado_nuevo_kg",
+          "monto",
+          "fecha"
+        ]
+      },
+      "GuiaCreadaDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "gui_1a2b3c4d5e6f7a8b"
+          },
+          "numero_guia": {
+            "type": "string",
+            "example": "MYLTEST4821930576"
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "documentada",
+              "recolectada",
+              "en_transito",
+              "en_reparto",
+              "entregada",
+              "cancelada"
+            ],
+            "example": "documentada"
+          },
+          "servicio": {
+            "type": "string",
+            "enum": [
+              "economico",
+              "express"
+            ]
+          },
+          "nombre_servicio": {
+            "type": "string",
+            "example": "Económico"
+          },
+          "costo": {
+            "type": "number",
+            "example": 242,
+            "description": "Costo cobrado al emitir, en MXN"
+          },
+          "desglose": {
+            "$ref": "#/components/schemas/DesgloseDto"
+          },
+          "moneda": {
+            "type": "string",
+            "example": "MXN"
+          },
+          "referencia": {
+            "type": "string",
+            "example": "PED-10234"
+          },
+          "contenido": {
+            "type": "string",
+            "example": "Ropa"
+          },
+          "origen": {
+            "$ref": "#/components/schemas/DireccionDto"
+          },
+          "destino": {
+            "$ref": "#/components/schemas/DireccionDto"
+          },
+          "paquetes": {
+            "type": "number",
+            "example": 1
+          },
+          "peso": {
+            "description": "Peso al emitir la guía",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PesoDto"
+              }
+            ]
+          },
+          "peso_cobrado_vigente_kg": {
+            "type": "number",
+            "example": 2,
+            "description": "Peso cobrado después de ajustes"
+          },
+          "adicionales": {
+            "$ref": "#/components/schemas/AdicionalesDto"
+          },
+          "zona_extendida": {
+            "type": "boolean"
+          },
+          "fecha_estimada_entrega": {
+            "type": "string",
+            "example": "2026-11-26"
+          },
+          "creada_en": {
+            "type": "string",
+            "example": "2026-11-19T08:00:00.000Z"
+          },
+          "cancelable_hasta": {
+            "type": "string",
+            "nullable": true,
+            "example": "2026-12-19T08:00:00.000Z",
+            "description": "Fecha límite para cancelar con reembolso. null si ya no es cancelable."
+          },
+          "etiqueta": {
+            "$ref": "#/components/schemas/EnlacesEtiquetaDto"
+          },
+          "rastreo_url": {
+            "type": "string",
+            "example": "http://localhost:8095/v1/rastreo/MYLTEST4821930576"
+          },
+          "ajustes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AjusteDto"
+            }
+          },
+          "cancelada_en": {
+            "type": "string",
+            "example": "2026-11-19T08:05:00.000Z"
+          },
+          "reembolso": {
+            "type": "number",
+            "example": 242
+          },
+          "saldo_disponible": {
+            "type": "number",
+            "example": 4758,
+            "description": "Saldo de prepago después del cargo"
+          }
+        },
+        "required": [
+          "id",
+          "numero_guia",
+          "estado",
+          "servicio",
+          "nombre_servicio",
+          "costo",
+          "desglose",
+          "moneda",
+          "origen",
+          "destino",
+          "paquetes",
+          "peso",
+          "peso_cobrado_vigente_kg",
+          "adicionales",
+          "zona_extendida",
+          "fecha_estimada_entrega",
+          "creada_en",
+          "cancelable_hasta",
+          "etiqueta",
+          "rastreo_url",
+          "ajustes",
+          "saldo_disponible"
+        ]
+      },
+      "GuiaDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "gui_1a2b3c4d5e6f7a8b"
+          },
+          "numero_guia": {
+            "type": "string",
+            "example": "MYLTEST4821930576"
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "documentada",
+              "recolectada",
+              "en_transito",
+              "en_reparto",
+              "entregada",
+              "cancelada"
+            ],
+            "example": "documentada"
+          },
+          "servicio": {
+            "type": "string",
+            "enum": [
+              "economico",
+              "express"
+            ]
+          },
+          "nombre_servicio": {
+            "type": "string",
+            "example": "Económico"
+          },
+          "costo": {
+            "type": "number",
+            "example": 242,
+            "description": "Costo cobrado al emitir, en MXN"
+          },
+          "desglose": {
+            "$ref": "#/components/schemas/DesgloseDto"
+          },
+          "moneda": {
+            "type": "string",
+            "example": "MXN"
+          },
+          "referencia": {
+            "type": "string",
+            "example": "PED-10234"
+          },
+          "contenido": {
+            "type": "string",
+            "example": "Ropa"
+          },
+          "origen": {
+            "$ref": "#/components/schemas/DireccionDto"
+          },
+          "destino": {
+            "$ref": "#/components/schemas/DireccionDto"
+          },
+          "paquetes": {
+            "type": "number",
+            "example": 1
+          },
+          "peso": {
+            "description": "Peso al emitir la guía",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PesoDto"
+              }
+            ]
+          },
+          "peso_cobrado_vigente_kg": {
+            "type": "number",
+            "example": 2,
+            "description": "Peso cobrado después de ajustes"
+          },
+          "adicionales": {
+            "$ref": "#/components/schemas/AdicionalesDto"
+          },
+          "zona_extendida": {
+            "type": "boolean"
+          },
+          "fecha_estimada_entrega": {
+            "type": "string",
+            "example": "2026-11-26"
+          },
+          "creada_en": {
+            "type": "string",
+            "example": "2026-11-19T08:00:00.000Z"
+          },
+          "cancelable_hasta": {
+            "type": "string",
+            "nullable": true,
+            "example": "2026-12-19T08:00:00.000Z",
+            "description": "Fecha límite para cancelar con reembolso. null si ya no es cancelable."
+          },
+          "etiqueta": {
+            "$ref": "#/components/schemas/EnlacesEtiquetaDto"
+          },
+          "rastreo_url": {
+            "type": "string",
+            "example": "http://localhost:8095/v1/rastreo/MYLTEST4821930576"
+          },
+          "ajustes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AjusteDto"
+            }
+          },
+          "cancelada_en": {
+            "type": "string",
+            "example": "2026-11-19T08:05:00.000Z"
+          },
+          "reembolso": {
+            "type": "number",
+            "example": 242
+          }
+        },
+        "required": [
+          "id",
+          "numero_guia",
+          "estado",
+          "servicio",
+          "nombre_servicio",
+          "costo",
+          "desglose",
+          "moneda",
+          "origen",
+          "destino",
+          "paquetes",
+          "peso",
+          "peso_cobrado_vigente_kg",
+          "adicionales",
+          "zona_extendida",
+          "fecha_estimada_entrega",
+          "creada_en",
+          "cancelable_hasta",
+          "etiqueta",
+          "rastreo_url",
+          "ajustes"
+        ]
+      },
+      "CancelacionDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "gui_1a2b3c4d5e6f7a8b"
+          },
+          "numero_guia": {
+            "type": "string",
+            "example": "MYLTEST4821930576"
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "cancelada"
+            ]
+          },
+          "reembolso": {
+            "type": "number",
+            "example": 242,
+            "description": "Costo de la guía más ajustes, devuelto al saldo"
+          },
+          "saldo_disponible": {
+            "type": "number",
+            "example": 5000
+          }
+        },
+        "required": [
+          "id",
+          "numero_guia",
+          "estado",
+          "reembolso",
+          "saldo_disponible"
+        ]
+      },
+      "EventoRastreoDto": {
+        "type": "object",
+        "properties": {
+          "estado": {
+            "type": "string",
+            "enum": [
+              "documentada",
+              "recolectada",
+              "en_transito",
+              "en_reparto",
+              "entregada",
+              "cancelada"
+            ],
+            "example": "recolectada"
+          },
+          "descripcion": {
+            "type": "string",
+            "example": "Paquete recolectado en origen"
+          },
+          "ubicacion": {
+            "type": "string",
+            "example": "Culiacán, Sinaloa"
+          },
+          "fecha": {
+            "type": "string",
+            "example": "2026-11-19T08:10:00.000Z"
+          }
+        },
+        "required": [
+          "estado",
+          "descripcion",
+          "ubicacion",
+          "fecha"
+        ]
+      },
+      "RastreoDto": {
+        "type": "object",
+        "properties": {
+          "numero_guia": {
+            "type": "string",
+            "example": "MYLTEST4821930576"
+          },
+          "guia_id": {
+            "type": "string",
+            "example": "gui_1a2b3c4d5e6f7a8b"
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "documentada",
+              "recolectada",
+              "en_transito",
+              "en_reparto",
+              "entregada",
+              "cancelada"
+            ],
+            "example": "en_transito"
+          },
+          "servicio": {
+            "type": "string",
+            "enum": [
+              "economico",
+              "express"
+            ]
+          },
+          "referencia": {
+            "type": "string",
+            "example": "PED-10234"
+          },
+          "origen": {
+            "type": "string",
+            "example": "Culiacán, Sinaloa"
+          },
+          "destino": {
+            "type": "string",
+            "example": "Ciudad de México, CDMX"
+          },
+          "fecha_estimada_entrega": {
+            "type": "string",
+            "example": "2026-11-26"
+          },
+          "eventos": {
+            "description": "Del más antiguo al más reciente",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EventoRastreoDto"
+            }
+          }
+        },
+        "required": [
+          "numero_guia",
+          "guia_id",
+          "estado",
+          "servicio",
+          "origen",
+          "destino",
+          "fecha_estimada_entrega",
+          "eventos"
+        ]
+      },
+      "MovimientoDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "mov_0a1b2c3d4e5f6a7b"
+          },
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "saldo_inicial",
+              "guia",
+              "cancelacion",
+              "ajuste",
+              "restablecimiento"
+            ]
+          },
+          "monto": {
+            "type": "number",
+            "example": -242,
+            "description": "Negativo es cargo; positivo es abono"
+          },
+          "saldo_resultante": {
+            "type": "number",
+            "example": 4758
+          },
+          "referencia": {
+            "type": "string",
+            "example": "MYLTEST4821930576"
+          },
+          "fecha": {
+            "type": "string",
+            "example": "2026-11-19T08:00:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "tipo",
+          "monto",
+          "saldo_resultante",
+          "fecha"
+        ]
+      },
+      "SaldoDto": {
+        "type": "object",
+        "properties": {
+          "saldo_disponible": {
+            "type": "number",
+            "example": 4758,
+            "description": "Puede quedar negativo tras un ajuste; en ese caso no se emiten guías hasta cubrirlo."
+          },
+          "moneda": {
+            "type": "string",
+            "example": "MXN"
+          },
+          "movimientos": {
+            "description": "Últimos 50 movimientos, del más reciente al más antiguo",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MovimientoDto"
+            }
+          }
+        },
+        "required": [
+          "saldo_disponible",
+          "moneda",
+          "movimientos"
+        ]
+      },
+      "RegistrarWebhookDto": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "example": "https://tu-sistema.mx/webhooks/myllos",
+            "description": "URL http o https que recibirá un POST por evento."
+          },
+          "eventos": {
+            "type": "array",
+            "default": [
+              "envio.estado",
+              "envio.ajuste"
+            ],
+            "items": {
+              "type": "string",
+              "enum": [
+                "envio.estado",
+                "envio.ajuste"
+              ]
+            }
+          }
+        },
+        "required": [
+          "url"
+        ]
+      },
+      "EntregaWebhookDto": {
+        "type": "object",
+        "properties": {
+          "evento": {
+            "type": "string",
+            "enum": [
+              "envio.estado",
+              "envio.ajuste"
+            ]
+          },
+          "status": {
+            "type": "number",
+            "nullable": true,
+            "example": 200
+          },
+          "ok": {
+            "type": "boolean",
+            "example": true
+          },
+          "fecha": {
+            "type": "string",
+            "example": "2026-11-19T08:00:00.000Z"
+          },
+          "error": {
+            "type": "string",
+            "example": "timeout"
+          }
+        },
+        "required": [
+          "evento",
+          "status",
+          "ok",
+          "fecha"
+        ]
+      },
+      "WebhookCreadoDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "whk_9a8b7c6d5e4f3a2b"
+          },
+          "url": {
+            "type": "string",
+            "example": "https://tu-sistema.mx/webhooks/myllos"
+          },
+          "eventos": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "envio.estado",
+                "envio.ajuste"
+              ]
+            }
+          },
+          "creado_en": {
+            "type": "string",
+            "example": "2026-11-19T08:00:00.000Z"
+          },
+          "ultima_entrega": {
+            "$ref": "#/components/schemas/EntregaWebhookDto"
+          },
+          "secreto": {
+            "type": "string",
+            "example": "whsec_5f2c...",
+            "description": "Solo se muestra al registrar. Con él verificas la firma X-Myllos-Firma de cada aviso."
+          }
+        },
+        "required": [
+          "id",
+          "url",
+          "eventos",
+          "creado_en",
+          "secreto"
+        ]
+      },
+      "WebhookDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "whk_9a8b7c6d5e4f3a2b"
+          },
+          "url": {
+            "type": "string",
+            "example": "https://tu-sistema.mx/webhooks/myllos"
+          },
+          "eventos": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "envio.estado",
+                "envio.ajuste"
+              ]
+            }
+          },
+          "creado_en": {
+            "type": "string",
+            "example": "2026-11-19T08:00:00.000Z"
+          },
+          "ultima_entrega": {
+            "$ref": "#/components/schemas/EntregaWebhookDto"
+          }
+        },
+        "required": [
+          "id",
+          "url",
+          "eventos",
+          "creado_en"
+        ]
+      },
+      "SimularAjusteDto": {
+        "type": "object",
+        "properties": {
+          "peso_verificado_kg": {
+            "type": "number",
+            "example": 4,
+            "description": "Peso total que verificó la paquetería. Si no lo envías, se simulan 2 kg más del peso cobrado.",
+            "minimum": 0.1,
+            "maximum": 600
+          }
+        }
+      },
+      "ResultadoAjusteDto": {
+        "type": "object",
+        "properties": {
+          "ajuste": {
+            "$ref": "#/components/schemas/AjusteDto"
+          },
+          "saldo_disponible": {
+            "type": "number",
+            "example": 4734
+          },
+          "webhooks_notificados": {
+            "type": "number",
+            "example": 1,
+            "description": "Webhooks que respondieron 2xx al aviso envio.ajuste"
+          }
+        },
+        "required": [
+          "ajuste",
+          "saldo_disponible",
+          "webhooks_notificados"
+        ]
+      }
+    }
+  }
+}
