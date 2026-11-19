@@ -842,7 +842,7 @@
         "scheme": "bearer",
         "bearerFormat": "JWT",
         "type": "http",
-        "description": "Llave de integración. Ejemplo: Bearer mk_test_dva_sandbox"
+        "description": "Llave de integración. Ejemplo: Bearer mk_test_sandbox"
       }
     },
     "schemas": {

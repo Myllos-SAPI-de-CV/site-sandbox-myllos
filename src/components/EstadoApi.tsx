@@ -30,11 +30,11 @@ export function EstadoApi() {
     };
   }, []);
 
-  const color = { consultando: "bg-neutral-300", en_linea: "bg-emerald-500", sin_respuesta: "bg-red-500" }[estado];
+  const color = { consultando: "bg-neutral-300 dark:bg-neutral-600", en_linea: "bg-emerald-500", sin_respuesta: "bg-red-500" }[estado];
   const texto = { consultando: "Consultando API", en_linea: "API en línea", sin_respuesta: "API sin respuesta" }[estado];
 
   return (
-    <span className="flex items-center gap-2 text-xs text-neutral-600" title={`${API_URL}/v1/estado`}>
+    <span className="flex items-center gap-2 text-xs text-neutral-600 dark:text-neutral-400" title={`${API_URL}/v1/estado`}>
       <span className={`size-2 rounded-full ${color}`} aria-hidden />
       {texto}
     </span>

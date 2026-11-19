@@ -18,7 +18,9 @@ export function Navegacion({ horizontal = false }: { horizontal?: boolean }) {
             aria-current={activo ? "page" : undefined}
             className={[
               "whitespace-nowrap rounded-md px-3 py-1.5 text-sm transition-colors",
-              activo ? "bg-neutral-100 font-medium text-neutral-950" : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-950",
+              activo
+                ? "bg-neutral-100 font-medium text-neutral-950 dark:bg-neutral-800 dark:text-white"
+                : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-950 dark:text-neutral-400 dark:hover:bg-neutral-900 dark:hover:text-white",
             ].join(" ")}
           >
             {item.titulo}

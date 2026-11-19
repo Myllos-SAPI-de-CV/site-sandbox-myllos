@@ -63,7 +63,7 @@ export default function GuiaSandbox() {
 
       <nav aria-label="En esta página" className="mt-6 flex flex-wrap gap-2">
         {INDICE.map(([id, titulo]) => (
-          <a key={id} href={`#${id}`} className="rounded-full border border-neutral-200 px-3 py-1 text-xs !font-normal !no-underline text-neutral-600 hover:border-neutral-400">
+          <a key={id} href={`#${id}`} className="rounded-full border border-neutral-200 px-3 py-1 text-xs !font-normal !no-underline text-neutral-600 hover:border-neutral-400 dark:border-neutral-800 dark:!text-neutral-400 dark:hover:border-neutral-600">
             {titulo}
           </a>
         ))}

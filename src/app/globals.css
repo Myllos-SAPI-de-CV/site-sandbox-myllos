@@ -1,8 +1,32 @@
 @import "tailwindcss";
 
+@custom-variant dark {
+  :root:has(> head > meta[name="color-scheme"][content="dark"]) & {
+    @slot;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not(:has(> head > meta[name="color-scheme"][content="light"])) & {
+      @slot;
+    }
+  }
+}
+
 @theme {
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+}
+
+:root {
+  color-scheme: light dark;
+
+  &:has(> head > meta[name="color-scheme"][content="dark"]) {
+    color-scheme: dark;
+  }
+
+  &:has(> head > meta[name="color-scheme"][content="light"]) {
+    color-scheme: light;
+  }
 }
 
 html {
@@ -10,24 +34,24 @@ html {
 }
 
 body {
-  @apply bg-white text-neutral-900 antialiased;
+  @apply bg-white text-neutral-900 antialiased dark:bg-neutral-950 dark:text-neutral-100;
 }
 
 @layer components {
   .doc {
-    @apply max-w-3xl text-[15px] leading-7 text-neutral-700;
+    @apply max-w-3xl text-[15px] leading-7 text-neutral-700 dark:text-neutral-300;
   }
 
   .doc h1 {
-    @apply text-3xl font-semibold tracking-tight text-neutral-950;
+    @apply text-3xl font-semibold tracking-tight text-neutral-950 dark:text-white;
   }
 
   .doc h2 {
-    @apply mt-12 scroll-mt-24 border-t border-neutral-200 pt-8 text-xl font-semibold tracking-tight text-neutral-950;
+    @apply mt-12 scroll-mt-24 border-t border-neutral-200 pt-8 text-xl font-semibold tracking-tight text-neutral-950 dark:border-neutral-800 dark:text-white;
   }
 
   .doc h3 {
-    @apply mt-8 scroll-mt-24 text-base font-semibold text-neutral-950;
+    @apply mt-8 scroll-mt-24 text-base font-semibold text-neutral-950 dark:text-white;
   }
 
   .doc p {
@@ -35,7 +59,7 @@ body {
   }
 
   .doc .lead {
-    @apply mt-3 text-lg leading-8 text-neutral-600;
+    @apply mt-3 text-lg leading-8 text-neutral-600 dark:text-neutral-400;
   }
 
   .doc ul {
@@ -47,19 +71,19 @@ body {
   }
 
   .doc li::marker {
-    @apply text-neutral-400;
+    @apply text-neutral-400 dark:text-neutral-600;
   }
 
   .doc a {
-    @apply font-medium text-neutral-950 underline decoration-neutral-300 underline-offset-4 hover:decoration-neutral-950;
+    @apply font-medium text-neutral-950 underline decoration-neutral-300 underline-offset-4 hover:decoration-neutral-950 dark:text-white dark:decoration-neutral-600 dark:hover:decoration-white;
   }
 
   .doc strong {
-    @apply font-semibold text-neutral-900;
+    @apply font-semibold text-neutral-900 dark:text-neutral-100;
   }
 
   .doc :not(pre) > code {
-    @apply rounded bg-neutral-100 px-1.5 py-0.5 font-mono text-[13px] text-neutral-900;
+    @apply rounded bg-neutral-100 px-1.5 py-0.5 font-mono text-[13px] text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100;
   }
 
   .doc table {
@@ -67,10 +91,10 @@ body {
   }
 
   .doc th {
-    @apply border-b border-neutral-300 py-2 pr-4 font-semibold text-neutral-900;
+    @apply border-b border-neutral-300 py-2 pr-4 font-semibold text-neutral-900 dark:border-neutral-700 dark:text-neutral-100;
   }
 
   .doc td {
-    @apply border-b border-neutral-200 py-2.5 pr-4 align-top;
+    @apply border-b border-neutral-200 py-2.5 pr-4 align-top dark:border-neutral-800;
   }
 }

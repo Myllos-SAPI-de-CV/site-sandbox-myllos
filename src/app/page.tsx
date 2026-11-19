@@ -8,7 +8,6 @@ const SIGUIENTES = [
   { href: "/autenticacion", titulo: "Autenticación", texto: "Cómo enviar la llave y qué responde la API si falta." },
   { href: "/sandbox", titulo: "Guía del sandbox", texto: "El flujo completo con ejemplos, reglas de cobro, webhooks y errores." },
   { href: "/referencia", titulo: "Referencia de la API", texto: "Cada endpoint con sus campos, respuestas y un cliente para probar." },
-  { href: "/solicitud", titulo: "Respuesta a DVA", texto: "Respuesta punto por punto a la solicitud de integración de DVA Response AI." },
 ];
 
 export default function Inicio() {
@@ -29,23 +28,23 @@ export default function Inicio() {
       <table>
         <tbody>
           <tr>
-            <td className="w-40 font-medium text-neutral-900">URL base</td>
+            <td className="w-40 font-medium text-neutral-900 dark:text-neutral-100">URL base</td>
             <td>
               <code>{BASE_URL}</code>
             </td>
           </tr>
           <tr>
-            <td className="font-medium text-neutral-900">Autenticación</td>
+            <td className="font-medium text-neutral-900 dark:text-neutral-100">Autenticación</td>
             <td>
               <code>Authorization: Bearer {LLAVE_PRUEBA}</code>
             </td>
           </tr>
           <tr>
-            <td className="font-medium text-neutral-900">Formato</td>
+            <td className="font-medium text-neutral-900 dark:text-neutral-100">Formato</td>
             <td>JSON en UTF-8. Importes en MXN con IVA incluido; pesos en kilogramos y medidas en centímetros.</td>
           </tr>
           <tr>
-            <td className="font-medium text-neutral-900">OpenAPI</td>
+            <td className="font-medium text-neutral-900 dark:text-neutral-100">OpenAPI</td>
             <td>
               <code>{API_URL}/docs-json</code>
             </td>
@@ -83,9 +82,9 @@ export default function Inicio() {
       <h2 id="siguiente">Siguiente</h2>
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
         {SIGUIENTES.map((item) => (
-          <Link key={item.href} href={item.href} className="rounded-lg border border-neutral-200 p-4 !no-underline transition-colors hover:border-neutral-400">
-            <span className="block font-semibold text-neutral-950">{item.titulo}</span>
-            <span className="mt-1 block text-sm font-normal text-neutral-600">{item.texto}</span>
+          <Link key={item.href} href={item.href} className="rounded-lg border border-neutral-200 p-4 !no-underline transition-colors hover:border-neutral-400 dark:border-neutral-800 dark:hover:border-neutral-600">
+            <span className="block font-semibold text-neutral-950 dark:text-white">{item.titulo}</span>
+            <span className="mt-1 block text-sm font-normal text-neutral-600 dark:text-neutral-400">{item.texto}</span>
           </Link>
         ))}
       </div>
